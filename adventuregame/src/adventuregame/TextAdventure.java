@@ -135,7 +135,7 @@ public class TextAdventure {
 		if (foundthingtounlock) {
 			if (inventory.contains(thingtounlock.key)) {
 				Map.currentroom.details.remove(thingtounlock);
-				Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.special.AUTO_CREATE_REVERSE_ROOM);
+				Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 				thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
 				thingtounlock.locked = false;
 				System.out.println(thingtounlock.unlocktext);
