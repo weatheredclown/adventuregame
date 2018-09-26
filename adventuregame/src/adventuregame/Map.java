@@ -5,6 +5,7 @@ import java.util.Arrays;
 public class Map {
 	// TODO:
 	// easy system for arbitrary actions
+	// player death
 	// We need a real plot with real descriptions
 	
 	static Room currentroom = null;
