@@ -8,8 +8,7 @@ public class TextAdventure {
 	static ArrayList<Item> inventory = new ArrayList<>();
 	
 	public static void main(String[] args) {
-		Map.init();
-		Map.currentroom.print();
+		doDeath();
 
 		String userinput = "";
 		Scanner scan = new Scanner(System.in);
@@ -34,9 +33,19 @@ public class TextAdventure {
 				continue;
 			}
 			
+			if (userinput.startsWith("close ")) {
+				doClose(userinput);
+				continue;
+			}
+			
 			Item takeItem = Map.currentroom.TakeItem(userinput);
 			if (takeItem != null) {
 				doTake(takeItem);
+				continue;
+			}
+			
+			if (userinput.equals("restart")) {
+				doDeath();
 				continue;
 			}
 			
@@ -76,6 +85,11 @@ public class TextAdventure {
 		scan.close();
 	}
 
+	private static void doDeath() {
+		Map.init();
+		Map.currentroom.print();
+	}
+
 	private static void doHelp() {
 		System.out.println("Help");
 		System.out.println("Travel by typing directions (north, south, east, west, up, down) or their abbreviated counterparts (n, s, e, w, u, d).");
@@ -102,61 +116,103 @@ public class TextAdventure {
 		return itemFound != null;
 	}
 
-	private static Item getitembyname(String itemtofind, ArrayList<Item> items) {
+	static Item getitembyname(String itemtofind, ArrayList<Item> items) {
 		for(Item item : items) {
 			if (item.match(itemtofind)) {
 				return item;
+			}
+			if (item.open) {
+				Item content = getitembyname(itemtofind, item.contents);
+				if (content != null) {
+					return content;
+				}
 			}
 		}
 		return null;
 	}
 
 	private static void doTake(Item takeItem) {
+		if (takeItem.fixed) {
+			System.out.println("Sorry, you can't pick that up.");
+			return;
+		}
 		Map.currentroom.items.remove(takeItem);
 		inventory.add(takeItem);
-		System.out.println("You have succesfully swindled " + takeItem.name + ".");
+		System.out.println("You have succesfully swindled " + takeItem.getName() + ".");
 	}
 
+	private static void doClose(String userinput) {
+		int firstSpace = userinput.indexOf(" ");
+		String itemtoclose = userinput.substring(firstSpace + 1);
+		Item thingtoclose = getitembyname(itemtoclose, Map.currentroom.details);
+		if (thingtoclose == null) {
+			thingtoclose = getitembyname(itemtoclose, Map.currentroom.items);
+		}
+		if (thingtoclose == null) {
+			thingtoclose = getitembyname(itemtoclose, inventory);
+		}
+		
+		if (thingtoclose != null && thingtoclose.openable) {
+			if (thingtoclose.open) {
+				thingtoclose.open = false;
+				System.out.println("Closed.");
+			} else {
+				System.out.println("That's already closed.");
+			}
+		} else {
+			System.out.println("You can't close that.");
+		}
+	}
+	
 	private static void doUnlock(String userinput) {
 		int firstSpace = userinput.indexOf(" ");
 		String itemtounlock = userinput.substring(firstSpace + 1);
-		boolean foundthingtounlock = false;
-		Item thingtounlock = null;
-		for(Item item : Map.currentroom.details) {
-			if (foundthingtounlock) {
-				break;
-			}
-			if (item.match(itemtounlock)) {
-					foundthingtounlock = true;
-					thingtounlock = item;
-					break;
-			}
+
+		Item thingtounlock = getitembyname(itemtounlock, Map.currentroom.details);
+		if (thingtounlock == null) {
+			thingtounlock = getitembyname(itemtounlock, Map.currentroom.items);
 		}
-		if (foundthingtounlock) {
-			if (inventory.contains(thingtounlock.key)) {
-				Map.currentroom.details.remove(thingtounlock);
-				Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
-				thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
-				thingtounlock.locked = false;
-				System.out.println(thingtounlock.unlocktext);
+		if (thingtounlock == null) {
+			thingtounlock = getitembyname(itemtounlock, inventory);
+		}
+		
+		if (thingtounlock != null) {
+			if (thingtounlock.locked) {
+				if (inventory.contains(thingtounlock.key)) {
+					Map.currentroom.details.remove(thingtounlock);
+					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
+					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
+					thingtounlock.locked = false;
+					System.out.println(thingtounlock.unlocktext);
+				} else {
+					System.out.println("You don't have the key.");
+				}
+			} else if (thingtounlock.openable) {
+				if (thingtounlock.open) {
+					System.out.println("That's already open.");
+				} else {
+					System.out.println("You open it.");
+					thingtounlock.open = true;
+				}
+				
 			} else {
-				System.out.println("You don't have the key.");
+				System.out.println("That doesn't open.");
 			}
 		} else {
-			System.out.println("You can't unlock " + thingtounlock + ".");
+			System.out.println("You can't unlock that.");
 		}
 	}
 
 	private static void doDropItem(Item dropItem) {
 		Map.currentroom.items.add(dropItem);
 		inventory.remove(dropItem);
-		System.out.println("You have succesfully de-swindled " + dropItem.name + ".");
+		System.out.println("You have succesfully de-swindled " + dropItem.getName() + ".");
 	}
 
 	private static void doInventory() {
 		System.out.println("You are carrying:");
 		for (Item item : inventory) {
-			System.out.println(" - " + item.name);
+			System.out.println(" - " + item.getName());
 		}
 		if (inventory.isEmpty()) {
 			System.out.println("Nothing! You're poor!");

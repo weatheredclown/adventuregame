@@ -7,6 +7,7 @@ public class Map {
 	// easy system for arbitrary actions
 	// player death
 	// We need a real plot with real descriptions
+	// place items in chest and take them out
 	
 	static Room currentroom = null;
 
@@ -22,6 +23,10 @@ public class Map {
 				syn("key", "brass key", "the key", "the brass key"));
 		dark.additem(brasskey);
 		fountain.details.add(new Item("fountain", "An ornate fountain. You feel invigorated just being in its presence. Also, you love it.", syn("fountain", "the fountain")));
+		
+		Item chest = new Item("Chest", "A wooden chest.", syn("chest")).isFixed(true).isOpenable(true).inRoom(dark);
+		Item coin = new Item("Coin", "A golden coin, that is made of gold.", syn("coin"));
+		chest.contents.add(coin);
 		
 //		Example of lock/key implementation		
 //		Item burger = new Item("burger", "a magic portal", syn("burger"));

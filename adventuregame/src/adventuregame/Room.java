@@ -1,6 +1,7 @@
 package adventuregame;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Room {
 	enum Special {
@@ -53,7 +54,12 @@ public class Room {
 		if (!items.isEmpty()) {
 			System.out.println("In this room you see: ");
 			for (Item item : items) {
-				System.out.println(" - " + item.name);
+				System.out.println(" - " + item.getName());
+				if (item.open) {
+					for (Item content : item.contents) {
+						System.out.println("   - " + content.getName());
+					}
+				}
 			}
 		}
 	}
@@ -67,13 +73,16 @@ public class Room {
 	}
 
 	public Item TakeItem(String userinput) {
-		if (userinput.startsWith("take ") && !items.isEmpty()) {
-			String itemtotake = userinput.substring(5);
-			for(Item item : items) {
-				if (item.match(itemtotake)) {
-					return item;
-				}
-			}
+		int index = -1;
+		if (userinput.startsWith("take ")) {
+			index = 5;
+		} else if (userinput.startsWith("pick up ")) {
+			index = 8;
+		}
+		
+		if (index != -1 && !items.isEmpty()) {
+			String itemtotake = userinput.substring(index);
+			return TextAdventure.getitembyname(itemtotake, items);
 		}
 		return null;
 	}
