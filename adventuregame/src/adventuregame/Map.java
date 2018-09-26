@@ -14,8 +14,8 @@ public class Map {
 		Room ncavern = new Room("North Cavern", "You are in the great north cavern.  It is really great! :-) To the south is a passageway leading back to the dark room. Also, you can go east.");
 		Room fountain = new Room("Fountain Room", "You are in a mysterious room with a large fountain in the center. A door is to your west, returning you to the great cavern.");
 		
-		dark.addexit("north", ncavern, Room.special.AUTO_CREATE_REVERSE_ROOM);
-		ncavern.addexit("east", fountain, Room.special.AUTO_CREATE_REVERSE_ROOM);
+		dark.addexit("north", ncavern, Room.Special.AUTO_CREATE_REVERSE_ROOM);
+		ncavern.addexit("east", fountain, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 		Item brasskey = new Item("The Brass Key",
 				"A key made of solid brass and encrusted with jewels. It shimmers in the torchlight of the dungeon, but only when you're in a room with torches.",
 				syn("key", "brass key", "the key", "the brass key"));

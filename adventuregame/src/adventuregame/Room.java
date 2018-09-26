@@ -3,7 +3,7 @@ package adventuregame;
 import java.util.ArrayList;
 
 public class Room {
-	enum special {
+	enum Special {
 		NONE,
 		AUTO_CREATE_REVERSE_ROOM;
 	}
@@ -16,9 +16,25 @@ public class Room {
 	ArrayList<Item> items = new ArrayList<>();
 	ArrayList<Item> details = new ArrayList<>();
 	
-	Room(String n, String d) {
-		name = n;
-		desc = d;
+	Room(String name, String desc) {
+		this.name = name;
+		this.desc = desc;
+	}
+	public void addexit(String string, Room r2) {
+		addexit(string, r2, Special.NONE);
+	}
+	
+	public void addexit(String exitname, Room destination, Special special) {
+		directions.add(new Direction(exitname, destination));
+		if (special == Special.AUTO_CREATE_REVERSE_ROOM) {
+			destination.directions.add(new Direction(Direction.opposite(exitname), this));
+		}
+
+		
+	}
+	
+	public void additem(Item item) {
+		items.add(item);
 	}
 	public void print() {
 		System.out.printf("%s\n%s", name, desc);
@@ -41,19 +57,6 @@ public class Room {
 			}
 		}
 	}
-	
-	public void addexit(String string, Room r2) {
-		addexit(string, r2, special.NONE);
-	}
-	
-	public void addexit(String exitname, Room r2, special s) {
-		directions.add(new Direction(exitname, r2));
-		if (s == special.AUTO_CREATE_REVERSE_ROOM) {
-			r2.directions.add(new Direction(Direction.opposite(exitname), this));
-		}
-
-		
-	}
 	public Room ProcessDirection(String userinput) {
 		for (Direction direction : directions) {
 			if (userinput.equals(direction.exitname)) {
@@ -61,9 +64,6 @@ public class Room {
 			}
 		}
 		return null;
-	}
-	public void additem(Item item) {
-		items.add(item);
 	}
 
 	public Item TakeItem(String userinput) {
