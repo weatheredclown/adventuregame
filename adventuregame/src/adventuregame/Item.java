@@ -71,4 +71,9 @@ public class Item {
 		}
 		return false;
 	}
+
+	public Item inContainer(Item chest) {
+		chest.contents.add(this);
+		return this;
+	}
 }

@@ -23,6 +23,9 @@ public class TextAdventure {
             	doHelp();
             	continue;
             }
+            if (Map.currentroom.processTriggers(userinput)) {
+            	continue;
+            }
 			if (userinput.equals("look")) {
 				Map.currentroom.print();
 				continue;
@@ -57,8 +60,7 @@ public class TextAdventure {
 			
 			Room newRoom = Map.currentroom.ProcessDirection(userinput);
 			if (newRoom != null) {
-				Map.currentroom = newRoom;
-				newRoom.print();
+				Map.doNavigate(newRoom);
 				continue;
 			}
 			if (userinput.equals("inventory")) {
@@ -87,7 +89,6 @@ public class TextAdventure {
 
 	private static void doDeath() {
 		Map.init();
-		Map.currentroom.print();
 	}
 
 	private static void doHelp() {
@@ -138,6 +139,7 @@ public class TextAdventure {
 		}
 		Map.currentroom.items.remove(takeItem);
 		inventory.add(takeItem);
+		Map.currentroom.onTakeItem(takeItem);
 		System.out.println("You have succesfully swindled " + takeItem.getName() + ".");
 	}
 
@@ -155,6 +157,7 @@ public class TextAdventure {
 		if (thingtoclose != null && thingtoclose.openable) {
 			if (thingtoclose.open) {
 				thingtoclose.open = false;
+				Map.currentroom.onCloseItem(thingtoclose);
 				System.out.println("Closed.");
 			} else {
 				System.out.println("That's already closed.");
@@ -183,6 +186,7 @@ public class TextAdventure {
 					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
 					thingtounlock.locked = false;
+					Map.currentroom.onUnlockItem(thingtounlock);
 					System.out.println(thingtounlock.unlocktext);
 				} else {
 					System.out.println("You don't have the key.");
@@ -193,6 +197,7 @@ public class TextAdventure {
 				} else {
 					System.out.println("You open it.");
 					thingtounlock.open = true;
+					Map.currentroom.onOpenItem(thingtounlock);
 				}
 				
 			} else {
@@ -206,6 +211,7 @@ public class TextAdventure {
 	private static void doDropItem(Item dropItem) {
 		Map.currentroom.items.add(dropItem);
 		inventory.remove(dropItem);
+		Map.currentroom.onDropItem(dropItem);
 		System.out.println("You have succesfully de-swindled " + dropItem.getName() + ".");
 	}
 
@@ -261,5 +267,4 @@ public class TextAdventure {
 		}
 		return null;
 	}
-	
 }

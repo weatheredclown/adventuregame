@@ -1,7 +1,6 @@
 package adventuregame;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class Room {
 	enum Special {
@@ -11,11 +10,15 @@ public class Room {
 
 	String name;
 	String desc;
+	public boolean hasEntered = false;
 	
 	ArrayList<Direction> directions = new ArrayList<>();
 	
 	ArrayList<Item> items = new ArrayList<>();
+	ArrayList<Trigger> triggers = new ArrayList<>();
 	ArrayList<Item> details = new ArrayList<>();
+	
+	
 	
 	Room(String name, String desc) {
 		this.name = name;
@@ -30,13 +33,12 @@ public class Room {
 		if (special == Special.AUTO_CREATE_REVERSE_ROOM) {
 			destination.directions.add(new Direction(Direction.opposite(exitname), this));
 		}
-
-		
 	}
 	
 	public void additem(Item item) {
 		items.add(item);
 	}
+
 	public void print() {
 		System.out.printf("%s\n%s", name, desc);
 		for (Item detail : details) {
@@ -85,6 +87,26 @@ public class Room {
 			return TextAdventure.getitembyname(itemtotake, items);
 		}
 		return null;
+	}
+	public void onTakeItem(Item takeItem) {
+	}
+	public void onCloseItem(Item closeItem) {
+	}
+	public void onUnlockItem(Item unlockItem) {
+	}
+	public void onOpenItem(Item openItem) {
+	}
+	public void onDropItem(Item itemDropped) {
+	}
+	public void onEnter() {
+	}
+	public boolean processTriggers(String userinput) {
+		for (Trigger trigger : triggers) {
+			if (trigger.process(userinput)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }
