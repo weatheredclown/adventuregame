@@ -21,6 +21,14 @@ public class Direction {
 			return "down";
 		} else if (direction.equals("down")) {
 			return "up";
+		} else if (direction.equals("northeast")) {
+			return "southwest";
+		} else if (direction.equals("southeast")) {
+			return "northwest";
+		} else if (direction.equals("northwest")) {
+			return "southeast";
+		} else if (direction.equals("southwest")) {
+			return "northeast";
 		}
 		return direction;
 	}

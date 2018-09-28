@@ -4,15 +4,29 @@ import java.util.Arrays;
 
 public class Map {
 	// TODO:
-	// easy system for arbitrary actions
-	// player death
 	// We need a real plot with real descriptions
 	// place items in chest and take them out
-	// non-cardinal directions
+	// triggers on items
+	// darkness
+	// fill out the requirements and actions on triggers 
+	// NPCs
+	// usability: multi-command on a line, again
 	
 	static Room currentroom = null;
 
 	public static void init() {
+		ogInit();
+		//pitInit();
+	}
+	
+	public static void pitInit() {
+		Room cavern = new Room("Cavern", "This room has exits to the north and south. There is also a spiral staircase leading down.  There is an inscription on the wall.");
+		
+		new Item("Magic Lightbulb", "", syn("bulb", "magic lightbulb", "lightbulb")).inRoom(cavern);
+		doNavigate(cavern);
+	}
+	
+	public static void ogInit() {
 		Room dark = new Room("Dark Room", "You are in a dark room. To your north is a passageway leading north. It looks very... northward.");
 		Room ncavern = new Room("North Cavern", "You are in the great north cavern.  It is really great! :-) To the south is a passageway leading back to the dark room. Also, you can go east.");
 		Room fountain = new Room("Fountain Room", "You are in a mysterious room with a large fountain in the center. A door is to your west, returning you to the great cavern.");
@@ -32,8 +46,6 @@ public class Map {
 		Item chest = new Item("Chest", "A wooden chest.", syn("chest")).isFixed(true).isOpenable(true).inRoom(dark);
 		/*Item coin = */new Item("Coin", "A golden coin, that is made of gold.", syn("coin")).inContainer(chest);
 
-		
-		
 //		Example of lock/key implementation		
 //		Item burger = new Item("burger", "a magic portal", syn("burger"));
 //		burger.addKey(brasskey, "You put the key in the burger. Monch Cronch", new Direction("east", dark), " You can go through the burger portal to the east.",

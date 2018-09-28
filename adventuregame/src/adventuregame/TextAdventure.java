@@ -31,6 +31,11 @@ public class TextAdventure {
 				continue;
 			}
 
+			if (userinput.startsWith("put ")) {
+				doPut(userinput);
+				continue;
+			}
+			
 			if (userinput.startsWith("unlock ") || userinput.startsWith("open ")) {
 				doUnlock(userinput);
 				continue;
@@ -87,6 +92,29 @@ public class TextAdventure {
 		scan.close();
 	}
 
+	// Some day:
+	// MatchResult matchResult = stringMatch("take %s(room)");
+	// MatchResult matchResult = stringMatch("put %s(inventory) in %o(*)");
+	// if (matchResult.found()) {
+	//   print(matchResult.s.getName());
+	//   print(matchResult.o.getName());
+
+	private static void doPut(String userinput) { // input: 'put coin in chest'
+		String itemname = userinput.substring(4); // after 'put '
+		Item.TokenMatch subject = getitembyname(itemname, inventory, true); // finds item for 'coin in chest'
+		if (subject.found()) { // found 'coin' object
+			String directObjectName = itemname.substring(subject.tokenFound.length() + 1);  // 'in chest'
+			if (directObjectName.startsWith("in ")) {
+				Item directObject = findItem(directObjectName.substring(3));
+				if (directObject != null) {
+					System.out.println("You put " + subject.item.getName() + " into " + directObject.getName() + ".");
+					inventory.remove(subject.item);
+					directObject.contents.add(subject.item);
+				}
+			}
+		}
+	}
+
 	private static void doDeath() {
 		Map.init();
 	}
@@ -100,59 +128,76 @@ public class TextAdventure {
 
 	private static boolean doExamine(String userinput, boolean founditem) {
 		String itemtoexamine = userinput.substring(8);
-		founditem = examineItem(founditem, itemtoexamine, inventory);
-		founditem = examineItem(founditem, itemtoexamine, Map.currentroom.items);
-		founditem = examineItem(founditem, itemtoexamine, Map.currentroom.details);
-		return founditem;
+		Item item = findItem(itemtoexamine);
+		if (item != null) {
+			System.out.println(item.description);
+		}
+		return item != null;
 	}
 
-	private static boolean examineItem(boolean founditem, String itemtoexamine, ArrayList<Item> items) {
-		if (founditem) {
-			return founditem;
-		}
-		Item itemFound = getitembyname(itemtoexamine, items);
-		if (itemFound != null) {
-			System.out.println(itemFound.description);
-		}
-		return itemFound != null;
-	}
-
-	static Item getitembyname(String itemtofind, ArrayList<Item> items) {
+	static Item.TokenMatch getitembyname(String itemtofind, ArrayList<Item> items, boolean allowPartialMatch) {
 		for(Item item : items) {
-			if (item.match(itemtofind)) {
-				return item;
+			Item.TokenMatch match = item.match(itemtofind, allowPartialMatch);
+			if (match.found()) {
+				return match;
 			}
 			if (item.open) {
-				Item content = getitembyname(itemtofind, item.contents);
-				if (content != null) {
-					return content;
+				Item.TokenMatch contenttoken = getitembyname(itemtofind, item.contents, allowPartialMatch);
+				if (contenttoken.found()) {
+					return contenttoken;
 				}
 			}
 		}
-		return null;
+		return new Item.TokenMatch();
+	}
+
+	static Item.TokenMatch getitembyname(String itemtofind, ArrayList<Item> items) {
+		return getitembyname(itemtofind, items, false);
 	}
 
 	private static void doTake(Item takeItem) {
-		if (takeItem.fixed) {
+		ArrayList<Item> location = findContainer(takeItem);
+		if (takeItem.fixed || location == null) {
 			System.out.println("Sorry, you can't pick that up.");
 			return;
 		}
-		Map.currentroom.items.remove(takeItem);
+
+		location.remove(takeItem);
 		inventory.add(takeItem);
 		Map.currentroom.onTakeItem(takeItem);
 		System.out.println("You have succesfully swindled " + takeItem.getName() + ".");
 	}
 
+	static ArrayList<Item> findContainer(Item takeItem) {
+		if (Map.currentroom.items.contains(takeItem)) {
+			return Map.currentroom.items;
+		}
+		ArrayList<Item> location = null;
+		if (location == null) {
+			location = findContainer(takeItem, Map.currentroom.items);
+		}
+		if (location == null) {
+			location = findContainer(takeItem, Map.currentroom.details);
+		}
+		if (location == null) {
+			location = findContainer(takeItem, inventory);
+		}
+		return location;
+	}
+	
+	private static ArrayList<Item> findContainer(Item takeItem, ArrayList<Item> location) {
+		for (Item item : location) {
+			if (item.contents.contains(takeItem)) {
+				return item.contents;
+			}
+		}
+		return null;
+	}
+
 	private static void doClose(String userinput) {
 		int firstSpace = userinput.indexOf(" ");
 		String itemtoclose = userinput.substring(firstSpace + 1);
-		Item thingtoclose = getitembyname(itemtoclose, Map.currentroom.details);
-		if (thingtoclose == null) {
-			thingtoclose = getitembyname(itemtoclose, Map.currentroom.items);
-		}
-		if (thingtoclose == null) {
-			thingtoclose = getitembyname(itemtoclose, inventory);
-		}
+		Item thingtoclose = findItem(itemtoclose);
 		
 		if (thingtoclose != null && thingtoclose.openable) {
 			if (thingtoclose.open) {
@@ -171,13 +216,7 @@ public class TextAdventure {
 		int firstSpace = userinput.indexOf(" ");
 		String itemtounlock = userinput.substring(firstSpace + 1);
 
-		Item thingtounlock = getitembyname(itemtounlock, Map.currentroom.details);
-		if (thingtounlock == null) {
-			thingtounlock = getitembyname(itemtounlock, Map.currentroom.items);
-		}
-		if (thingtounlock == null) {
-			thingtounlock = getitembyname(itemtounlock, inventory);
-		}
+		Item thingtounlock = findItem(itemtounlock);
 		
 		if (thingtounlock != null) {
 			if (thingtounlock.locked) {
@@ -206,6 +245,21 @@ public class TextAdventure {
 		} else {
 			System.out.println("You can't unlock that.");
 		}
+	}
+
+	private static Item findItem(String itemname) {
+		return findItemToken(itemname, false).item;
+	}
+
+	private static Item.TokenMatch findItemToken(String itemtounlock, boolean allowPartialMatch) {
+		Item.TokenMatch thingtounlock = getitembyname(itemtounlock, Map.currentroom.details, allowPartialMatch);
+		if (!thingtounlock.found()) {
+			thingtounlock = getitembyname(itemtounlock, Map.currentroom.items, allowPartialMatch);
+		}
+		if (!thingtounlock.found()) {
+			thingtounlock = getitembyname(itemtounlock, inventory, allowPartialMatch);
+		}
+		return thingtounlock;
 	}
 
 	private static void doDropItem(Item dropItem) {
@@ -245,6 +299,14 @@ public class TextAdventure {
 			return "east";
 		} else if (in.equals("w")) {
 			return "west";
+		} else if (in.equals("ne")) {
+			return "northeast";
+		} else if (in.equals("se")) {
+			return "southeast";
+		} else if (in.equals("sw")) {
+			return "southwest";
+		} else if (in.equals("nw")) {
+			return "northwest";
 		} else if (in.equals("l") || in.equals("x")) {
 			return "look";
 		} else if (in.equals("i")) {
@@ -255,12 +317,12 @@ public class TextAdventure {
 		}
 		return in;
 	}
-	
+
 	public static Item DropItem(String userinput) {
 		if (userinput.startsWith("drop ") && !inventory.isEmpty()) {
 			String itemtotake = userinput.substring(5);
 			for(Item item : inventory) {
-				if (item.match(itemtotake)) {
+				if (item.match(itemtotake).found()) {
 					return item;
 				}
 			}

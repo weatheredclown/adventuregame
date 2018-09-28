@@ -9,7 +9,9 @@ public class Trigger {
 		TARGET_ITEM,
 		ITEM_IN_ROOM,
 		ITEM_IN_INVENTORY,
+		PLAYER_IN_ROOM,
 		OR,
+		NOT
 	}
 	
 	enum TriggerActionType {
@@ -17,7 +19,7 @@ public class Trigger {
 		GIVE_ITEM,
 		TAKE_ITEM,
 		CREATE_EXIT,
-		
+		MOVE_PLAYER
 	}
 	
 	static class ActionData {

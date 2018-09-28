@@ -3,6 +3,21 @@ package adventuregame;
 import java.util.ArrayList;
 
 public class Item {
+	
+	static class TokenMatch {
+		TokenMatch(String tokenFound, Item item) {
+			this.tokenFound = tokenFound;
+			this.item = item;
+		}
+		public TokenMatch() {
+		}
+		String tokenFound = null;
+		Item item = null;
+		boolean found() {
+			return item != null;
+		}
+	}
+	
 	private String name;
 	String description;
 	private String syn[];
@@ -63,13 +78,17 @@ public class Item {
 		this.exitappend = exitappend;
 	}
 
-	public boolean match(String itemtotake) {
+	public TokenMatch match(String itemname, boolean allowPartialMatch) {
 		for (int i = 0; i < syn.length; i++) {
-			if (syn[i].equals(itemtotake)) {
-				return true;
+			if (syn[i].equals(itemname) || (allowPartialMatch && itemname.startsWith(syn[i] + " "))) {
+				return new TokenMatch(syn[i], this);
 			}
 		}
-		return false;
+		return new TokenMatch();
+	}
+	
+	public TokenMatch match(String itemtotake) {
+		return match(itemtotake, false);
 	}
 
 	public Item inContainer(Item chest) {

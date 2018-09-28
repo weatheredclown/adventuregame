@@ -84,7 +84,7 @@ public class Room {
 		
 		if (index != -1 && !items.isEmpty()) {
 			String itemtotake = userinput.substring(index);
-			return TextAdventure.getitembyname(itemtotake, items);
+			return TextAdventure.getitembyname(itemtotake, items).item;
 		}
 		return null;
 	}
