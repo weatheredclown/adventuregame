@@ -44,8 +44,31 @@ public class Map {
 				.addAction(Trigger.createMessageAction("eat dirt ok")));
 		
 		Item chest = new Item("Chest", "A wooden chest.", syn("chest")).isFixed(true).isOpenable(true).inRoom(dark);
-		/*Item coin = */new Item("Coin", "A golden coin, that is made of gold.", syn("coin")).inContainer(chest);
+		Item coin = new Item("Coin", "A golden coin, that is made of gold.", syn("coin")).inContainer(chest);
 
+		Item whistle = new Item("Steel Whistle", "A steel whistle.", syn("steel whistle", "whistle")).inRoom(dark);
+		whistle.addTrigger(new Trigger()
+				.addRequirement(Trigger.createCommandReq("blow whistle"))
+				.addRequirement(Trigger.createInInventoryReq(whistle))
+				.addAction(Trigger.createMessageAction("Toot toot!"))
+				);
+		
+		dark.triggers.add(new Trigger()
+				.addRequirement(Trigger.createCommandReq("north"))
+				.addRequirement(Trigger.createNotReq(Trigger.createInInventoryReq(coin)))
+				.addAction(Trigger.createMessageAction("You can't pay the toll."))
+				.failOnce()
+				);
+		
+		dark.triggers.add(new Trigger()
+				.addRequirement(Trigger.createCommandReq("north"))
+				.addRequirement(Trigger.createInInventoryReq(coin))
+				.addAction(Trigger.createMessageAction("You pay the toll."))
+				.addAction(Trigger.createTakeItemAction(coin))
+				.addAction(Trigger.createMovePlayerAction(ncavern))
+				.succeedOnce()
+				);
+		
 //		Example of lock/key implementation		
 //		Item burger = new Item("burger", "a magic portal", syn("burger"));
 //		burger.addKey(brasskey, "You put the key in the burger. Monch Cronch", new Direction("east", dark), " You can go through the burger portal to the east.",

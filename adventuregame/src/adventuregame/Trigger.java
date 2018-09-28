@@ -25,10 +25,12 @@ public class Trigger {
 	static class ActionData {
 		// message data
 		String message;
+		public Item takeItem;
+		public Room room;
 	}
 	
 	static class RequirementData {
-		// command data
+		// Command data
 		String command;
 		
 		// Target data
@@ -42,6 +44,9 @@ public class Trigger {
 		
 		// OR data
 		Requirement[] ors;
+		
+		// NOT data
+		Requirement not;
 	}
 
 	static class Action {
@@ -51,6 +56,12 @@ public class Trigger {
 			switch(t) {
 			case MESSAGE:
 				System.out.println(d.message);
+				break;
+			case MOVE_PLAYER:
+				Map.doNavigate(d.room);
+				break;
+			case TAKE_ITEM:
+				Player.inventory.remove(d.takeItem);
 				break;
 			default:
 				System.out.println("Unsupported type: " + t);
@@ -65,10 +76,12 @@ public class Trigger {
 		public boolean met(String userinput) {
 			switch(t) {
 			case COMMAND:
-				if (userinput.equals(d.command)) {
-					return true;
-				}
-				break;
+				return userinput.equals(d.command);
+			case ITEM_IN_INVENTORY:
+				return Player.inventory.contains(d.ininventory);
+			case NOT: {
+				return !d.not.met(userinput);
+			}
 			case OR: {
 				for (int i = 0; i < d.ors.length; i++) {
 					if (d.ors[i].met(userinput)) {
@@ -79,7 +92,6 @@ public class Trigger {
 			default:
 				System.out.println("Unsupported type: " + t);
 			}
-			// TODO Auto-generated method stub
 			return false;
 		}
 	}
@@ -102,13 +114,22 @@ public class Trigger {
 	}
 	
 	public boolean process(String userinput) {
+		if (disabled) {
+			return false;
+		}
 		for(Requirement requirement : requirements) {
 			if (!requirement.met(userinput)) {
+				if (failOnce) {
+					disabled = true;
+				}
 				return false;
 			}
 		}
 		for (Action action : actions) {
 			action.perform();
+		}
+		if (succeedOnce) {
+			disabled = false;
 		}
 		return true;
 	}
@@ -121,11 +142,57 @@ public class Trigger {
 		return req;
 	}
 
+	public static Requirement createInInventoryReq(Item item) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.ITEM_IN_INVENTORY;
+		req.d = new Trigger.RequirementData();
+		req.d.ininventory = item;		
+		return req;
+	}
+	
+	public static Requirement createNotReq(Requirement requirement) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.NOT;
+		req.d = new Trigger.RequirementData();
+		req.d.not = requirement;		
+		return req;
+	}
+	
 	public static Action createMessageAction(String string) {
 		Trigger.Action act = new Trigger.Action();
 		act.t = Trigger.TriggerActionType.MESSAGE;
 		act.d = new Trigger.ActionData();
 		act.d.message = string;
+		return act;
+	}
+
+	boolean failOnce = false;
+	boolean succeedOnce = false;
+	boolean disabled = false;
+
+	public Trigger succeedOnce() {
+		succeedOnce = true;
+		return this;
+	}
+	
+	public Trigger failOnce() {
+		failOnce = true;
+		return this;
+	}
+
+	public static Action createTakeItemAction(Item item) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.TAKE_ITEM;
+		act.d = new Trigger.ActionData();
+		act.d.takeItem = item;
+		return act;
+	}
+
+	public static Action createMovePlayerAction(Room room) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.MOVE_PLAYER;
+		act.d = new Trigger.ActionData();
+		act.d.room = room;
 		return act;
 	}
 

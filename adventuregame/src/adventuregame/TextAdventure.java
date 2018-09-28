@@ -1,12 +1,12 @@
 package adventuregame;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class TextAdventure {
 
-	static ArrayList<Item> inventory = new ArrayList<>();
-	
 	public static void main(String[] args) {
 		doDeath();
 
@@ -21,6 +21,9 @@ public class TextAdventure {
 			}
             if (userinput.equals("help")) {
             	doHelp();
+            	continue;
+            }
+            if (doItemTriggered(userinput)) {
             	continue;
             }
             if (Map.currentroom.processTriggers(userinput)) {
@@ -99,16 +102,29 @@ public class TextAdventure {
 	//   print(matchResult.s.getName());
 	//   print(matchResult.o.getName());
 
+	private static boolean doItemTriggered(String userinput) {
+		List<ArrayList<Item>> lists = Arrays.asList(Player.inventory, Map.currentroom.items,
+				Map.currentroom.details);
+		for (ArrayList<Item> list : lists) {
+			for (Item item : list) {
+	        	if (item.processTriggers(userinput)) {
+	        		return true;
+	        	}
+	        }
+		}
+        return false;
+	}
+
 	private static void doPut(String userinput) { // input: 'put coin in chest'
 		String itemname = userinput.substring(4); // after 'put '
-		Item.TokenMatch subject = getitembyname(itemname, inventory, true); // finds item for 'coin in chest'
+		Item.TokenMatch subject = getitembyname(itemname, Player.inventory, true); // finds item for 'coin in chest'
 		if (subject.found()) { // found 'coin' object
 			String directObjectName = itemname.substring(subject.tokenFound.length() + 1);  // 'in chest'
 			if (directObjectName.startsWith("in ")) {
 				Item directObject = findItem(directObjectName.substring(3));
 				if (directObject != null) {
 					System.out.println("You put " + subject.item.getName() + " into " + directObject.getName() + ".");
-					inventory.remove(subject.item);
+					Player.inventory.remove(subject.item);
 					directObject.contents.add(subject.item);
 				}
 			}
@@ -161,9 +177,13 @@ public class TextAdventure {
 			System.out.println("Sorry, you can't pick that up.");
 			return;
 		}
+		if (Player.inventoryFull()) {
+			System.out.println("Sorry, your inventory is full.");
+			return;
+		}
 
 		location.remove(takeItem);
-		inventory.add(takeItem);
+		Player.inventory.add(takeItem);
 		Map.currentroom.onTakeItem(takeItem);
 		System.out.println("You have succesfully swindled " + takeItem.getName() + ".");
 	}
@@ -180,7 +200,7 @@ public class TextAdventure {
 			location = findContainer(takeItem, Map.currentroom.details);
 		}
 		if (location == null) {
-			location = findContainer(takeItem, inventory);
+			location = findContainer(takeItem, Player.inventory);
 		}
 		return location;
 	}
@@ -220,7 +240,7 @@ public class TextAdventure {
 		
 		if (thingtounlock != null) {
 			if (thingtounlock.locked) {
-				if (inventory.contains(thingtounlock.key)) {
+				if (Player.inventory.contains(thingtounlock.key)) {
 					Map.currentroom.details.remove(thingtounlock);
 					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
@@ -257,24 +277,24 @@ public class TextAdventure {
 			thingtounlock = getitembyname(itemtounlock, Map.currentroom.items, allowPartialMatch);
 		}
 		if (!thingtounlock.found()) {
-			thingtounlock = getitembyname(itemtounlock, inventory, allowPartialMatch);
+			thingtounlock = getitembyname(itemtounlock, Player.inventory, allowPartialMatch);
 		}
 		return thingtounlock;
 	}
 
 	private static void doDropItem(Item dropItem) {
 		Map.currentroom.items.add(dropItem);
-		inventory.remove(dropItem);
+		Player.inventory.remove(dropItem);
 		Map.currentroom.onDropItem(dropItem);
 		System.out.println("You have succesfully de-swindled " + dropItem.getName() + ".");
 	}
 
 	private static void doInventory() {
 		System.out.println("You are carrying:");
-		for (Item item : inventory) {
+		for (Item item : Player.inventory) {
 			System.out.println(" - " + item.getName());
 		}
-		if (inventory.isEmpty()) {
+		if (Player.inventory.isEmpty()) {
 			System.out.println("Nothing! You're poor!");
 		}
 	}
@@ -319,9 +339,9 @@ public class TextAdventure {
 	}
 
 	public static Item DropItem(String userinput) {
-		if (userinput.startsWith("drop ") && !inventory.isEmpty()) {
+		if (userinput.startsWith("drop ") && !Player.inventory.isEmpty()) {
 			String itemtotake = userinput.substring(5);
-			for(Item item : inventory) {
+			for(Item item : Player.inventory) {
 				if (item.match(itemtotake).found()) {
 					return item;
 				}

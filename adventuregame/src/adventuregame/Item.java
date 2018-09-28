@@ -95,4 +95,19 @@ public class Item {
 		chest.contents.add(this);
 		return this;
 	}
+
+	ArrayList<Trigger> triggers = new ArrayList<>();
+	
+	public void addTrigger(Trigger trigger) {
+		triggers.add(trigger);
+	}
+	
+	public boolean processTriggers(String userinput) {
+		for (Trigger trigger : triggers) {
+			if (trigger.process(userinput)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
