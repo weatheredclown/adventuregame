@@ -74,7 +74,7 @@ public class Trigger {
 		public String itemstate;
 	}
 
-	static class Action {
+	public static class Action {
 		TriggerActionType t;
 		ActionData d;
 
@@ -111,7 +111,7 @@ public class Trigger {
 		}
 	}
 
-	static class Requirement {
+	public static class Requirement {
 		TriggerRequirementType t;
 		RequirementData d;
 
@@ -149,15 +149,15 @@ public class Trigger {
 	private ArrayList<Requirement> requirements = new ArrayList<>();
 	private ArrayList<Action> actions = new ArrayList<>();
 
-	Trigger() {
+	public Trigger() {
 	}
 
-	Trigger addRequirement(Requirement requirement) {
+	public Trigger addRequirement(Requirement requirement) {
 		this.requirements.add(requirement);
 		return this;
 	}
 
-	Trigger addAction(Action action) {
+	public Trigger addAction(Action action) {
 		this.actions.add(action);
 		return this;
 	}

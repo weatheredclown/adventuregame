@@ -3,7 +3,7 @@ package adventuregame;
 import java.util.ArrayList;
 
 public class Room {
-	enum Special {
+	public enum Special {
 		NONE,
 		NO_REVERSE_ROOM;
 	}
@@ -19,7 +19,7 @@ public class Room {
 	ArrayList<Trigger> triggers = new ArrayList<>();
 	ArrayList<Item> details = new ArrayList<>();
 
-	Room(String name, String desc) {
+	public Room(String name, String desc) {
 		this.name = name;
 		this.desc = desc;
 	}
@@ -128,7 +128,7 @@ public class Room {
 	public void onEnter() {
 	}
 
-	Room makeDark() {
+	public Room makeDark() {
 		dark = true;
 		return this;
 	}
@@ -145,5 +145,9 @@ public class Room {
 	public void addSimpleTrigger(String string, String string2) {
 		triggers.add(new Trigger().addRequirement(Trigger.createCommandReq(string))
 				.addAction(Trigger.createMessageAction(string2)));
+	}
+	
+	public void addTrigger(Trigger t) {
+		triggers.add(t);
 	}
 }

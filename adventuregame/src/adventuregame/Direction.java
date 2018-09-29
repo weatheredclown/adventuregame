@@ -3,7 +3,7 @@ package adventuregame;
 public class Direction {
 	String exitname;
 	Room room;
-	Direction(String exitname, Room r) {
+	public Direction(String exitname, Room r) {
 		this.exitname = exitname;
 		room = r;
 	}
