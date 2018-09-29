@@ -29,7 +29,7 @@ public class Trigger {
 		CHANGE_ITEM_TIMER,
 		CHANGE_ITEM_LIGHT_STATE
 	}
-	
+
 	static class ActionData {
 		// message data
 		String message;
@@ -46,23 +46,23 @@ public class Trigger {
 		public int timerdelta;
 		public boolean lightstate;
 	}
-	
+
 	static class RequirementData {
 		// Command data
 		String command;
-		
+
 		// Target data
 		Item target;
-		
+
 		// In Room data
 		Item inroom;
-		
+
 		// Inventory data
 		Item ininventory;
-		
+
 		// OR data
 		Requirement[] ors;
-		
+
 		// NOT data
 		Requirement not;
 
@@ -77,8 +77,9 @@ public class Trigger {
 	static class Action {
 		TriggerActionType t;
 		ActionData d;
+
 		public boolean perform() {
-			switch(t) {
+			switch (t) {
 			case MESSAGE:
 				System.out.println(d.message);
 				break;
@@ -109,12 +110,13 @@ public class Trigger {
 			return true;
 		}
 	}
-	
+
 	static class Requirement {
 		TriggerRequirementType t;
 		RequirementData d;
+
 		public boolean met(String userinput) {
-			switch(t) {
+			switch (t) {
 			case COMMAND:
 				return userinput.equals(d.command);
 			case ITEM_IN_INVENTORY:
@@ -146,25 +148,25 @@ public class Trigger {
 
 	private ArrayList<Requirement> requirements = new ArrayList<>();
 	private ArrayList<Action> actions = new ArrayList<>();
-	
+
 	Trigger() {
 	}
-	
+
 	Trigger addRequirement(Requirement requirement) {
 		this.requirements.add(requirement);
 		return this;
 	}
-	
+
 	Trigger addAction(Action action) {
 		this.actions.add(action);
 		return this;
 	}
-	
+
 	public boolean process(String userinput) {
 		if (disabled) {
 			return false;
 		}
-		for(Requirement requirement : requirements) {
+		for (Requirement requirement : requirements) {
 			if (!requirement.met(userinput)) {
 				if (failOnce) {
 					disabled = true;
@@ -185,7 +187,7 @@ public class Trigger {
 		Requirement req = new Requirement();
 		req.t = Trigger.TriggerRequirementType.COMMAND;
 		req.d = new Trigger.RequirementData();
-		req.d.command = string;		
+		req.d.command = string;
 		return req;
 	}
 
@@ -193,18 +195,18 @@ public class Trigger {
 		Requirement req = new Requirement();
 		req.t = Trigger.TriggerRequirementType.ITEM_IN_INVENTORY;
 		req.d = new Trigger.RequirementData();
-		req.d.ininventory = item;		
+		req.d.ininventory = item;
 		return req;
 	}
-	
+
 	public static Requirement createNotReq(Requirement requirement) {
 		Requirement req = new Requirement();
 		req.t = Trigger.TriggerRequirementType.NOT;
 		req.d = new Trigger.RequirementData();
-		req.d.not = requirement;		
+		req.d.not = requirement;
 		return req;
 	}
-	
+
 	public static Action createMessageAction(String string) {
 		Trigger.Action act = new Trigger.Action();
 		act.t = Trigger.TriggerActionType.MESSAGE;
@@ -222,7 +224,7 @@ public class Trigger {
 		succeedOnce = true;
 		return this;
 	}
-	
+
 	public Trigger failOnce() {
 		failOnce = true;
 		return this;
@@ -271,7 +273,7 @@ public class Trigger {
 		Requirement req = new Requirement();
 		req.t = Trigger.TriggerRequirementType.PLAYER_IN_ROOM;
 		req.d = new Trigger.RequirementData();
-		req.d.room = room;		
+		req.d.room = room;
 		return req;
 	}
 
@@ -279,7 +281,7 @@ public class Trigger {
 		Requirement req = new Requirement();
 		req.t = Trigger.TriggerRequirementType.OR;
 		req.d = new Trigger.RequirementData();
-		req.d.ors = reqs;		
+		req.d.ors = reqs;
 		return req;
 	}
 

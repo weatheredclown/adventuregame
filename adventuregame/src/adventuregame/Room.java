@@ -18,28 +18,27 @@ public class Room {
 	ArrayList<Item> items = new ArrayList<>();
 	ArrayList<Trigger> triggers = new ArrayList<>();
 	ArrayList<Item> details = new ArrayList<>();
-	
+
 	Room(String name, String desc) {
 		this.name = name;
 		this.desc = desc;
 	}
+
 	public void addexit(String string, Room r2) {
 		addexit(string, r2, Special.NONE);
 	}
-	
+
 	public void addexit(String exitname, Room destination, Special special) {
 		directions.add(new Direction(exitname, destination));
 		if (special != Special.NO_REVERSE_ROOM) {
 			destination.directions.add(new Direction(Direction.opposite(exitname), this));
 		}
 	}
-	
+
 	public void additem(Item item) {
 		items.add(item);
 	}
 
-	
-	
 	public void print() {
 		System.out.println(name);
 		if (isDark()) {
@@ -71,19 +70,20 @@ public class Room {
 			}
 		}
 	}
-	
+
 	boolean isDark() {
 		return dark && !Player.hasLight() && !Map.currentroom.hasLight();
 	}
-	
+
 	private boolean hasLight() {
-		for(Item item : items) {
+		for (Item item : items) {
 			if (item.lightsource)
 				return true;
 		}
 
 		return false;
 	}
+
 	public Room ProcessDirection(String userinput) {
 		for (Direction direction : directions) {
 			if (userinput.equals(direction.exitname)) {
@@ -102,31 +102,37 @@ public class Room {
 		} else if (TextAdventure.askAboutTake) {
 			index = 0;
 		}
-		
+
 		if (index != -1 && !items.isEmpty()) {
 			String itemtotake = userinput.substring(index);
 			return TextAdventure.getitembyname(itemtotake, items).item;
 		}
 		return null;
 	}
+
 	public void onTakeItem(Item takeItem) {
 	}
+
 	public void onCloseItem(Item closeItem) {
 	}
+
 	public void onUnlockItem(Item unlockItem) {
 	}
+
 	public void onOpenItem(Item openItem) {
 	}
+
 	public void onDropItem(Item itemDropped) {
 	}
+
 	public void onEnter() {
 	}
-	
+
 	Room makeDark() {
 		dark = true;
 		return this;
 	}
-	
+
 	public boolean processTriggers(String userinput) {
 		for (Trigger trigger : triggers) {
 			if (trigger.process(userinput)) {
@@ -135,10 +141,9 @@ public class Room {
 		}
 		return false;
 	}
-	
+
 	public void addSimpleTrigger(String string, String string2) {
-		triggers.add(new Trigger()
-				.addRequirement(Trigger.createCommandReq(string))
+		triggers.add(new Trigger().addRequirement(Trigger.createCommandReq(string))
 				.addAction(Trigger.createMessageAction(string2)));
 	}
 }

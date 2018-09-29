@@ -9,7 +9,7 @@ public class TextAdventure {
 
 	static boolean askAboutTake = false;
 	static boolean askAboutDrop = false;
-	
+
 	public static void main(String[] args) {
 		doDeath();
 
@@ -22,24 +22,24 @@ public class TextAdventure {
 			if (userinput.isEmpty()) {
 				continue;
 			}
-			
-            if (userinput.equals("help")) {
-            	doHelp();
-            	continue;
-            }
-            
-            if (doItemTriggered(userinput)) {
-            	continue;
-            }
-            
-            if (Map.currentroom.processTriggers(userinput)) {
-            	continue;
-            }
 
-            if (Player.processTriggers(userinput)) {
-            	continue;
-            }
-            
+			if (userinput.equals("help")) {
+				doHelp();
+				continue;
+			}
+
+			if (doItemTriggered(userinput)) {
+				continue;
+			}
+
+			if (Map.currentroom.processTriggers(userinput)) {
+				continue;
+			}
+
+			if (Player.processTriggers(userinput)) {
+				continue;
+			}
+
 			if (userinput.equals("look")) {
 				Map.currentroom.print();
 				continue;
@@ -55,38 +55,40 @@ public class TextAdventure {
 				Map.doNavigate(newRoom);
 				continue;
 			}
-			
+
 			if (userinput.equals("inventory")) {
 				doInventory();
 				continue;
 			}
-			
+
 			if (Map.currentroom.isDark()) {
 				// none of the commands after this point work in dark rooms.
 				System.out.println("It is so dark here.  So very dark.");
 				continue;
 			}
-			
+
 			if (userinput.startsWith("put ")) {
 				doPut(userinput);
 				continue;
 			}
-			
+
 			if (userinput.startsWith("unlock ") || userinput.startsWith("open ")) {
 				doUnlock(userinput);
 				continue;
 			}
-			
+
 			if (userinput.startsWith("close ")) {
 				doClose(userinput);
 				continue;
 			}
-			
-			if (!Map.currentroom.items.isEmpty() && userinput.equals("take all") || (userinput.equals("take") && Map.currentroom.items.size() == 1)) {
+
+			if (!Map.currentroom.items.isEmpty()
+					&& (userinput.equals("take all") || (userinput.equals("all") && askAboutTake))
+					|| (userinput.equals("take") && Map.currentroom.items.size() == 1)) {
 				doTakeAll(Map.currentroom.items);
 				continue;
 			}
-			
+
 			Item takeItem = Map.currentroom.TakeItem(userinput);
 			if (takeItem != null) {
 				doTake(takeItem);
@@ -98,9 +100,9 @@ public class TextAdventure {
 				askAboutTake = true;
 				continue;
 			}
-			
+
 			askAboutTake = false;
-			
+
 			Item dropItem = DropItem(userinput);
 			if (dropItem != null) {
 				doDropItem(dropItem);
@@ -112,9 +114,9 @@ public class TextAdventure {
 				askAboutDrop = true;
 				continue;
 			}
-			
+
 			askAboutDrop = false;
-			
+
 			if (isDirection(userinput)) {
 				System.out.println("You can't go " + userinput + "!");
 				continue;
@@ -133,7 +135,7 @@ public class TextAdventure {
 			if (userinput.equals("quit")) {
 				System.out.println("Goodbye!");
 			} else {
-				System.out.println("The command '" + userinput +"' is not recognized.");
+				System.out.println("The command '" + userinput + "' is not recognized.");
 			}
 		}
 		scan.close();
@@ -155,27 +157,26 @@ public class TextAdventure {
 	// MatchResult matchResult = stringMatch("take %s(room)");
 	// MatchResult matchResult = stringMatch("put %s(inventory) in %o(*)");
 	// if (matchResult.found()) {
-	//   print(matchResult.s.getName());
-	//   print(matchResult.o.getName());
+	// print(matchResult.s.getName());
+	// print(matchResult.o.getName());
 
 	private static boolean doItemTriggered(String userinput) {
-		List<ArrayList<Item>> lists = Arrays.asList(Player.inventory, Map.currentroom.items,
-				Map.currentroom.details);
+		List<ArrayList<Item>> lists = Arrays.asList(Player.inventory, Map.currentroom.items, Map.currentroom.details);
 		for (ArrayList<Item> list : lists) {
 			for (Item item : list) {
-	        	if (item.processTriggers(userinput)) {
-	        		return true;
-	        	}
-	        }
+				if (item.processTriggers(userinput)) {
+					return true;
+				}
+			}
 		}
-        return false;
+		return false;
 	}
 
 	private static void doPut(String userinput) { // input: 'put coin in chest'
 		String itemname = userinput.substring(4); // after 'put '
 		Item.TokenMatch subject = getitembyname(itemname, Player.inventory, true); // finds item for 'coin in chest'
 		if (subject.found()) { // found 'coin' object
-			String directObjectName = itemname.substring(subject.tokenFound.length() + 1);  // 'in chest'
+			String directObjectName = itemname.substring(subject.tokenFound.length() + 1); // 'in chest'
 			if (directObjectName.startsWith("in ")) {
 				Item directObject = findItem(directObjectName.substring(3));
 				if (directObject != null) {
@@ -194,9 +195,11 @@ public class TextAdventure {
 
 	private static void doHelp() {
 		System.out.println("Help");
-		System.out.println("Travel by typing directions (north, south, east, west, up, down) or their abbreviated counterparts (n, s, e, w, u, d).");
+		System.out.println(
+				"Travel by typing directions (north, south, east, west, up, down) or their abbreviated counterparts (n, s, e, w, u, d).");
 		System.out.println("Pick up items by typing 'take [item]' and drop them with 'drop [item]'.");
-		System.out.println("Examine your surroundings using 'look' or 'l', and examine items with 'examine [item]' or 'x [item]'. Many things in a room can be examined, and some objects may reveal hints, so be observant!");
+		System.out.println(
+				"Examine your surroundings using 'look' or 'l', and examine items with 'examine [item]' or 'x [item]'. Many things in a room can be examined, and some objects may reveal hints, so be observant!");
 	}
 
 	private static boolean doExamine(String userinput, boolean founditem) {
@@ -209,7 +212,7 @@ public class TextAdventure {
 	}
 
 	static Item.TokenMatch getitembyname(String itemtofind, ArrayList<Item> items, boolean allowPartialMatch) {
-		for(Item item : items) {
+		for (Item item : items) {
 			Item.TokenMatch match = item.match(itemtofind, allowPartialMatch);
 			if (match.found()) {
 				return match;
@@ -261,7 +264,7 @@ public class TextAdventure {
 		}
 		return location;
 	}
-	
+
 	private static ArrayList<Item> findContainer(Item takeItem, ArrayList<Item> location) {
 		for (Item item : location) {
 			if (item.contents.contains(takeItem)) {
@@ -275,7 +278,7 @@ public class TextAdventure {
 		int firstSpace = userinput.indexOf(" ");
 		String itemtoclose = userinput.substring(firstSpace + 1);
 		Item thingtoclose = findItem(itemtoclose);
-		
+
 		if (thingtoclose != null && thingtoclose.openable) {
 			if (thingtoclose.open) {
 				thingtoclose.open = false;
@@ -288,13 +291,13 @@ public class TextAdventure {
 			System.out.println("You can't close that.");
 		}
 	}
-	
+
 	private static void doUnlock(String userinput) {
 		int firstSpace = userinput.indexOf(" ");
 		String itemtounlock = userinput.substring(firstSpace + 1);
 
 		Item thingtounlock = findItem(itemtounlock);
-		
+
 		if (thingtounlock != null) {
 			if (thingtounlock.locked) {
 				if (Player.inventory.contains(thingtounlock.key)) {
@@ -302,9 +305,11 @@ public class TextAdventure {
 					if (thingtounlock.exitappend != null && !thingtounlock.exitappend.isEmpty()) {
 						Map.currentroom.desc += thingtounlock.exitappend;
 					}
-					
-					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room);
-					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname) + ".";
+
+					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname,
+							thingtounlock.directiononunlock.room);
+					thingtounlock.directiononunlock.room.desc += " You can go "
+							+ Direction.opposite(thingtounlock.directiononunlock.exitname) + ".";
 					thingtounlock.locked = false;
 					Map.currentroom.onUnlockItem(thingtounlock);
 					System.out.println(thingtounlock.unlocktext);
@@ -319,7 +324,7 @@ public class TextAdventure {
 					thingtounlock.open = true;
 					Map.currentroom.onOpenItem(thingtounlock);
 				}
-				
+
 			} else {
 				System.out.println("That doesn't open.");
 			}
@@ -413,7 +418,7 @@ public class TextAdventure {
 			return null;
 		}
 		if (!Player.inventory.isEmpty()) {
-			for(Item item : Player.inventory) {
+			for (Item item : Player.inventory) {
 				if (item.match(itemtotake).found()) {
 					return item;
 				}
