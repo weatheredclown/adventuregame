@@ -22,8 +22,8 @@ public class Map {
 	static Room currentroom = null;
 
 	public static void init() {
-		ogInit();
-		//pitInit();
+		//ogInit();
+		pitInit();
 	}
 	
 	public static void pitInit() {
@@ -96,6 +96,8 @@ public class Map {
 		Item canteen = new Item("Canteen", "A steel camping canteen.", syn("canteen")).inRoom(riverroom);
 		canteen.addState("empty");
 
+		riverroom.addSimpleTrigger("fish", "You can't go fishing here.");
+		
 		canteen.addTrigger(new Trigger()
 				.addRequirement(Trigger.createCommandReq("fill canteen"))
 				.addRequirement(Trigger.createStateReq(canteen, "empty"))
@@ -103,6 +105,10 @@ public class Map {
 				.addAction(Trigger.createStateChangeAction(canteen, "filled"))
 				);
 
+		Room glassroom = new Room("glass room", "The floor is made of a transparent substance. There is an exit in to the east. You see a crystal staircase leading down.");
+		dungeon.addexit("south", glassroom, Special.NO_REVERSE_ROOM);
+		glassroom.addexit("east", dungeon, Special.NO_REVERSE_ROOM);
+		
 		doNavigate(cavern);
 	}
 

@@ -82,7 +82,7 @@ public class TextAdventure {
 				continue;
 			}
 			
-			if (userinput.equals("take all") || (userinput.equals("take") && Map.currentroom.items.size() == 1)) {
+			if (!Map.currentroom.items.isEmpty() && userinput.equals("take all") || (userinput.equals("take") && Map.currentroom.items.size() == 1)) {
 				doTakeAll(Map.currentroom.items);
 				continue;
 			}
@@ -188,6 +188,7 @@ public class TextAdventure {
 	}
 
 	private static void doDeath() {
+		Player.inventory.clear();
 		Map.init();
 	}
 
