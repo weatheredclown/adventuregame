@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Room {
 	enum Special {
 		NONE,
-		AUTO_CREATE_REVERSE_ROOM;
+		NO_REVERSE_ROOM;
 	}
 
 	String name;
@@ -29,7 +29,7 @@ public class Room {
 	
 	public void addexit(String exitname, Room destination, Special special) {
 		directions.add(new Direction(exitname, destination));
-		if (special == Special.AUTO_CREATE_REVERSE_ROOM) {
+		if (special != Special.NO_REVERSE_ROOM) {
 			destination.directions.add(new Direction(Direction.opposite(exitname), this));
 		}
 	}
@@ -99,6 +99,8 @@ public class Room {
 			index = 5;
 		} else if (userinput.startsWith("pick up ")) {
 			index = 8;
+		} else if (TextAdventure.askAboutTake) {
+			index = 0;
 		}
 		
 		if (index != -1 && !items.isEmpty()) {
@@ -134,4 +136,9 @@ public class Room {
 		return false;
 	}
 	
+	public void addSimpleTrigger(String string, String string2) {
+		triggers.add(new Trigger()
+				.addRequirement(Trigger.createCommandReq(string))
+				.addAction(Trigger.createMessageAction(string2)));
+	}
 }

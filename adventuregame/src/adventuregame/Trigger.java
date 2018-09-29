@@ -11,7 +11,10 @@ public class Trigger {
 		ITEM_IN_INVENTORY,
 		PLAYER_IN_ROOM,
 		OR,
-		NOT
+		NOT,
+		LIGHT_IN_INVENTORY,
+		ITEM_STATE,
+		ITEM_TIMER
 	}
 
 	enum TriggerActionType {
@@ -19,14 +22,29 @@ public class Trigger {
 		GIVE_ITEM,
 		TAKE_ITEM,
 		CREATE_EXIT,
-		MOVE_PLAYER
+		MOVE_PLAYER,
+		DISABLE_TRIGGER,
+		ENABLE_TRIGGER,
+		CHANGE_ITEM_STATE,
+		CHANGE_ITEM_TIMER,
+		CHANGE_ITEM_LIGHT_STATE
 	}
 	
 	static class ActionData {
 		// message data
 		String message;
+		// take item
 		public Item takeItem;
+		// move player
 		public Room room;
+		// disable trigger
+		public Trigger disabletrigger;
+		// enable trigger
+		public Trigger enabletrigger;
+		public Item item;
+		public String newstate;
+		public int timerdelta;
+		public boolean lightstate;
 	}
 	
 	static class RequirementData {
@@ -47,6 +65,13 @@ public class Trigger {
 		
 		// NOT data
 		Requirement not;
+
+		// In room
+		Room room;
+
+		public Item statecheckitem;
+
+		public String itemstate;
 	}
 
 	static class Action {
@@ -63,8 +88,23 @@ public class Trigger {
 			case TAKE_ITEM:
 				Player.inventory.remove(d.takeItem);
 				break;
+			case DISABLE_TRIGGER:
+				d.disabletrigger.disabled = true;
+				break;
+			case ENABLE_TRIGGER:
+				d.enabletrigger.disabled = true;
+				break;
+			case CHANGE_ITEM_STATE:
+				d.item.state = d.newstate;
+				break;
+			case CHANGE_ITEM_TIMER:
+				d.item.turntimer += d.timerdelta;
+				break;
+			case CHANGE_ITEM_LIGHT_STATE:
+				d.item.lightsource = d.lightstate;
+				break;
 			default:
-				System.out.println("Unsupported type: " + t);
+				System.out.println("Unsupported action type: " + t);
 			}
 			return true;
 		}
@@ -79,6 +119,8 @@ public class Trigger {
 				return userinput.equals(d.command);
 			case ITEM_IN_INVENTORY:
 				return Player.inventory.contains(d.ininventory);
+			case LIGHT_IN_INVENTORY:
+				return Player.hasLight();
 			case NOT: {
 				return !d.not.met(userinput);
 			}
@@ -89,8 +131,14 @@ public class Trigger {
 					}
 				}
 			}
+			case PLAYER_IN_ROOM:
+				return Map.currentroom == d.room;
+			case ITEM_STATE:
+				return d.itemstate.equals(d.statecheckitem.state);
+			case ITEM_TIMER:
+				return d.statecheckitem.turntimer > 0;
 			default:
-				System.out.println("Unsupported type: " + t);
+				System.out.println("Unsupported requirement type: " + t);
 			}
 			return false;
 		}
@@ -100,7 +148,6 @@ public class Trigger {
 	private ArrayList<Action> actions = new ArrayList<>();
 	
 	Trigger() {
-		
 	}
 	
 	Trigger addRequirement(Requirement requirement) {
@@ -131,7 +178,7 @@ public class Trigger {
 		if (succeedOnce) {
 			disabled = false;
 		}
-		return true;
+		return !eatsInput;
 	}
 
 	public static Requirement createCommandReq(String string) {
@@ -169,6 +216,7 @@ public class Trigger {
 	boolean failOnce = false;
 	boolean succeedOnce = false;
 	boolean disabled = false;
+	boolean eatsInput = false;
 
 	public Trigger succeedOnce() {
 		succeedOnce = true;
@@ -196,4 +244,91 @@ public class Trigger {
 		return act;
 	}
 
+	public static Action createDisableTriggerAction(Trigger trigger) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.DISABLE_TRIGGER;
+		act.d = new Trigger.ActionData();
+		act.d.disabletrigger = trigger;
+		return act;
+	}
+
+	public static Action createEnableTriggerAction(Trigger trigger) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.ENABLE_TRIGGER;
+		act.d = new Trigger.ActionData();
+		act.d.enabletrigger = trigger;
+		return act;
+	}
+
+	public static Requirement createLightInInventoryReq() {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.LIGHT_IN_INVENTORY;
+		req.d = new Trigger.RequirementData();
+		return req;
+	}
+
+	public static Requirement createPlayerInRoomReq(Room room) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.PLAYER_IN_ROOM;
+		req.d = new Trigger.RequirementData();
+		req.d.room = room;		
+		return req;
+	}
+
+	public static Requirement createOrReq(Requirement... reqs) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.OR;
+		req.d = new Trigger.RequirementData();
+		req.d.ors = reqs;		
+		return req;
+	}
+
+	public static Requirement createStateReq(Item item, String string) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.ITEM_STATE;
+		req.d = new Trigger.RequirementData();
+		req.d.statecheckitem = item;
+		req.d.itemstate = string;
+		return req;
+	}
+
+	public static Action createStateChangeAction(Item item, String string) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.CHANGE_ITEM_STATE;
+		act.d = new Trigger.ActionData();
+		act.d.item = item;
+		act.d.newstate = string;
+		return act;
+	}
+
+	public static Action createChangeTimerAction(Item item, int i) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.CHANGE_ITEM_TIMER;
+		act.d = new Trigger.ActionData();
+		act.d.item = item;
+		act.d.timerdelta = i;
+		return act;
+	}
+
+	public static Requirement createTurnsLeftOnItemReq(Item item) {
+		Requirement req = new Requirement();
+		req.t = Trigger.TriggerRequirementType.ITEM_TIMER;
+		req.d = new Trigger.RequirementData();
+		req.d.statecheckitem = item;
+		return req;
+	}
+
+	public Trigger shouldEatInput(boolean b) {
+		this.eatsInput = b;
+		return this;
+	}
+
+	public static Action createSetLightOnItemAction(Item item, boolean b) {
+		Trigger.Action act = new Trigger.Action();
+		act.t = Trigger.TriggerActionType.CHANGE_ITEM_LIGHT_STATE;
+		act.d = new Trigger.ActionData();
+		act.d.item = item;
+		act.d.lightstate = b;
+		return act;
+	}
 }

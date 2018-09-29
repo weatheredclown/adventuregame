@@ -7,6 +7,9 @@ import java.util.Scanner;
 
 public class TextAdventure {
 
+	static boolean askAboutTake = false;
+	static boolean askAboutDrop = false;
+	
 	public static void main(String[] args) {
 		doDeath();
 
@@ -30,6 +33,10 @@ public class TextAdventure {
             }
             
             if (Map.currentroom.processTriggers(userinput)) {
+            	continue;
+            }
+
+            if (Player.processTriggers(userinput)) {
             	continue;
             }
             
@@ -75,18 +82,39 @@ public class TextAdventure {
 				continue;
 			}
 			
+			if (userinput.equals("take all") || (userinput.equals("take") && Map.currentroom.items.size() == 1)) {
+				doTakeAll(Map.currentroom.items);
+				continue;
+			}
+			
 			Item takeItem = Map.currentroom.TakeItem(userinput);
 			if (takeItem != null) {
 				doTake(takeItem);
 				continue;
 			}
 
+			if (userinput.equals("take")) {
+				System.out.println("What do you want to take?");
+				askAboutTake = true;
+				continue;
+			}
+			
+			askAboutTake = false;
+			
 			Item dropItem = DropItem(userinput);
 			if (dropItem != null) {
 				doDropItem(dropItem);
 				continue;
 			}
 
+			if (userinput.equals("drop")) {
+				System.out.println("What do you want to drop?");
+				askAboutDrop = true;
+				continue;
+			}
+			
+			askAboutDrop = false;
+			
 			if (isDirection(userinput)) {
 				System.out.println("You can't go " + userinput + "!");
 				continue;
@@ -102,9 +130,25 @@ public class TextAdventure {
 					continue;
 				}
 			}
-			System.out.println("The command '" + userinput +"' is not recognized.");
+			if (userinput.equals("quit")) {
+				System.out.println("Goodbye!");
+			} else {
+				System.out.println("The command '" + userinput +"' is not recognized.");
+			}
 		}
 		scan.close();
+	}
+
+	static void doTakeAll(ArrayList<Item> items) {
+		@SuppressWarnings("unchecked")
+		ArrayList<Item> itemsToIterate = (ArrayList<Item>) items.clone();
+		for (Item item : itemsToIterate) {
+			System.out.print(item.getName() + ": ");
+			doTake(item);
+			if (item.open) {
+				doTakeAll(item.contents);
+			}
+		}
 	}
 
 	// Some day:
@@ -254,8 +298,12 @@ public class TextAdventure {
 			if (thingtounlock.locked) {
 				if (Player.inventory.contains(thingtounlock.key)) {
 					Map.currentroom.details.remove(thingtounlock);
-					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room, Room.Special.AUTO_CREATE_REVERSE_ROOM);
-					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname);
+					if (thingtounlock.exitappend != null && !thingtounlock.exitappend.isEmpty()) {
+						Map.currentroom.desc += thingtounlock.exitappend;
+					}
+					
+					Map.currentroom.addexit(thingtounlock.directiononunlock.exitname, thingtounlock.directiononunlock.room);
+					thingtounlock.directiononunlock.room.desc += " You can go " + Direction.opposite(thingtounlock.directiononunlock.exitname) + ".";
 					thingtounlock.locked = false;
 					Map.currentroom.onUnlockItem(thingtounlock);
 					System.out.println(thingtounlock.unlocktext);
@@ -331,6 +379,10 @@ public class TextAdventure {
 			return "east";
 		} else if (in.equals("w")) {
 			return "west";
+		} else if (in.equals("u")) {
+			return "up";
+		} else if (in.equals("d")) {
+			return "down";
 		} else if (in.equals("ne")) {
 			return "northeast";
 		} else if (in.equals("se")) {
@@ -351,8 +403,15 @@ public class TextAdventure {
 	}
 
 	public static Item DropItem(String userinput) {
-		if (userinput.startsWith("drop ") && !Player.inventory.isEmpty()) {
-			String itemtotake = userinput.substring(5);
+		String itemtotake;
+		if (userinput.startsWith("drop ")) {
+			itemtotake = userinput.substring(5);
+		} else if (askAboutDrop) {
+			itemtotake = userinput;
+		} else {
+			return null;
+		}
+		if (!Player.inventory.isEmpty()) {
 			for(Item item : Player.inventory) {
 				if (item.match(itemtotake).found()) {
 					return item;

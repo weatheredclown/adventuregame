@@ -2,6 +2,8 @@ package adventuregame;
 
 import java.util.ArrayList;
 
+import adventuregame.Trigger.Requirement;
+
 public class Item {
 	
 	static class TokenMatch {
@@ -38,6 +40,8 @@ public class Item {
 	ArrayList<Item> contents = new ArrayList<>();
 	ArrayList<Trigger> triggers = new ArrayList<>();
 	public boolean lightsource = false;
+	String state = null;
+	public int turntimer = 0;
 	Item(String name, String description, String syn[]) {
 		this.name = name;
 		this.description = description;
@@ -53,8 +57,9 @@ public class Item {
 	}
 
 	
-	public void addTrigger(Trigger trigger) {
+	public Item addTrigger(Trigger trigger) {
 		triggers.add(trigger);
+		return this;
 	}
 
 	String getName() {		
@@ -64,6 +69,9 @@ public class Item {
 		}
 		if (lightsource && Map.currentroom.dark) {
 			ret += " (providing light)";
+		}
+		if (state != null) {
+			ret += " (" + state + ")";
 		}
 		return ret;
 	}
@@ -121,5 +129,13 @@ public class Item {
 	public Item detailInRoom(Room room) {
 		room.details.add(this);
 		return this;
+	}
+	public void addSimpleTrigger(String string, String string2) {
+		addTrigger(new Trigger()
+				.addRequirement(Trigger.createCommandReq(string))
+				.addAction(Trigger.createMessageAction(string2)));
+	}
+	public void addState(String string) {
+		this.state = string;
 	}
 }

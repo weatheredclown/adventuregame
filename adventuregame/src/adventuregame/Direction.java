@@ -29,6 +29,10 @@ public class Direction {
 			return "southeast";
 		} else if (direction.equals("southwest")) {
 			return "northeast";
+		} else if (direction.equals("in")) {
+			return "in";
+		} else if (direction.equals("out")) {
+			return "out";
 		}
 		return direction;
 	}
