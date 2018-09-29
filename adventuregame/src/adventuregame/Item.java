@@ -5,14 +5,14 @@ import java.util.ArrayList;
 public class Item {
 	
 	static class TokenMatch {
+		String tokenFound = null;
+		Item item = null;
+		public TokenMatch() {
+		}
 		TokenMatch(String tokenFound, Item item) {
 			this.tokenFound = tokenFound;
 			this.item = item;
 		}
-		public TokenMatch() {
-		}
-		String tokenFound = null;
-		Item item = null;
 		boolean found() {
 			return item != null;
 		}
@@ -21,54 +21,28 @@ public class Item {
 	private String name;
 	String description;
 	private String syn[];
-	
+
 	boolean openable = false;
 	boolean open = false;
 	boolean fixed = false;
-	
-	Item isOpen(boolean open) {
-		this.open = open;
-		return this;
-	}
-	
-	Item isFixed(boolean fixed) {
-		this.fixed = fixed;
-		return this;
-	}
-	
-	Item isOpenable(boolean openable) {
-		this.openable = openable;
-		return this;
-	}
-	
-	Item inRoom(Room myroom) {
-		myroom.additem(this);
-		return this;
-	}
-	
 	boolean locked = false;
+	
 	Item key = null;
+	
 	String unlocktext = "";
+	
 	Direction directiononunlock = null;
+	
 	public String exitappend;
 	String lockedtext;
 	ArrayList<Item> contents = new ArrayList<>();
-
-	
+	ArrayList<Trigger> triggers = new ArrayList<>();
+	public boolean lightsource = false;
 	Item(String name, String description, String syn[]) {
 		this.name = name;
 		this.description = description;
 		this.syn = syn;
 	}
-	
-	String getName() {		
-		if (openable) {
-			return name + (open ? " (open)": " (closed)");
-		} else {
-			return name;
-		}
-	}
-	
 	void addKey(Item key, String unlocktext, Direction onunlock, String exitappend, String lockedtext) {
 		locked = true;
 		this.lockedtext = lockedtext;
@@ -78,6 +52,55 @@ public class Item {
 		this.exitappend = exitappend;
 	}
 
+	
+	public void addTrigger(Trigger trigger) {
+		triggers.add(trigger);
+	}
+
+	String getName() {		
+		String ret = name;
+		if (openable) {
+			ret += (open ? " (open)": " (closed)");
+		}
+		if (lightsource && Map.currentroom.dark) {
+			ret += " (providing light)";
+		}
+		return ret;
+	}
+
+	public Item inContainer(Item chest) {
+		chest.contents.add(this);
+		return this;
+	}
+
+	Item inRoom(Room myroom) {
+		myroom.additem(this);
+		return this;
+	}
+	
+	Item isFixed(boolean fixed) {
+		this.fixed = fixed;
+		return this;
+	}
+
+	Item isLightsource(boolean light) {
+		this.lightsource = true;
+		return this;
+	}
+	
+	Item isOpen(boolean open) {
+		this.open = open;
+		return this;
+	}
+
+	Item isOpenable(boolean openable) {
+		this.openable = openable;
+		return this;
+	}
+	public TokenMatch match(String itemtotake) {
+		return match(itemtotake, false);
+	}
+	
 	public TokenMatch match(String itemname, boolean allowPartialMatch) {
 		for (int i = 0; i < syn.length; i++) {
 			if (syn[i].equals(itemname) || (allowPartialMatch && itemname.startsWith(syn[i] + " "))) {
@@ -87,21 +110,6 @@ public class Item {
 		return new TokenMatch();
 	}
 	
-	public TokenMatch match(String itemtotake) {
-		return match(itemtotake, false);
-	}
-
-	public Item inContainer(Item chest) {
-		chest.contents.add(this);
-		return this;
-	}
-
-	ArrayList<Trigger> triggers = new ArrayList<>();
-	
-	public void addTrigger(Trigger trigger) {
-		triggers.add(trigger);
-	}
-	
 	public boolean processTriggers(String userinput) {
 		for (Trigger trigger : triggers) {
 			if (trigger.process(userinput)) {
@@ -109,5 +117,9 @@ public class Item {
 			}
 		}
 		return false;
+	}
+	public Item detailInRoom(Room room) {
+		room.details.add(this);
+		return this;
 	}
 }

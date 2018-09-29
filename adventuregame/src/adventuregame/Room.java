@@ -11,14 +11,13 @@ public class Room {
 	String name;
 	String desc;
 	public boolean hasEntered = false;
-	
+	public boolean dark = false;
+
 	ArrayList<Direction> directions = new ArrayList<>();
-	
+
 	ArrayList<Item> items = new ArrayList<>();
 	ArrayList<Trigger> triggers = new ArrayList<>();
 	ArrayList<Item> details = new ArrayList<>();
-	
-	
 	
 	Room(String name, String desc) {
 		this.name = name;
@@ -39,8 +38,15 @@ public class Room {
 		items.add(item);
 	}
 
+	
+	
 	public void print() {
-		System.out.printf("%s\n%s", name, desc);
+		System.out.println(name);
+		if (isDark()) {
+			System.out.println("It is dark here. You can't see anything.");
+			return;
+		}
+		System.out.println(desc);
 		for (Item detail : details) {
 			if (detail.locked) {
 				if (detail.lockedtext != null && !detail.lockedtext.isEmpty()) {
@@ -52,8 +58,8 @@ public class Room {
 				}
 			}
 		}
-		System.out.print("\n");
 		if (!items.isEmpty()) {
+			System.out.print("\n");
 			System.out.println("In this room you see: ");
 			for (Item item : items) {
 				System.out.println(" - " + item.getName());
@@ -64,6 +70,19 @@ public class Room {
 				}
 			}
 		}
+	}
+	
+	boolean isDark() {
+		return dark && !Player.hasLight() && !Map.currentroom.hasLight();
+	}
+	
+	private boolean hasLight() {
+		for(Item item : items) {
+			if (item.lightsource)
+				return true;
+		}
+
+		return false;
 	}
 	public Room ProcessDirection(String userinput) {
 		for (Direction direction : directions) {
@@ -100,6 +119,12 @@ public class Room {
 	}
 	public void onEnter() {
 	}
+	
+	Room makeDark() {
+		dark = true;
+		return this;
+	}
+	
 	public boolean processTriggers(String userinput) {
 		for (Trigger trigger : triggers) {
 			if (trigger.process(userinput)) {

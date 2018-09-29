@@ -11,18 +11,21 @@ public class Map {
 	// fill out the requirements and actions on triggers 
 	// NPCs
 	// usability: multi-command on a line, again
+
+	// Story notes:
+	// the existential loneliness of an archeologist in an ancient industrial society.
 	
 	static Room currentroom = null;
 
 	public static void init() {
-		ogInit();
-		//pitInit();
+		//ogInit();
+		pitInit();
 	}
 	
 	public static void pitInit() {
-		Room cavern = new Room("Cavern", "This room has exits to the north and south. There is also a spiral staircase leading down.  There is an inscription on the wall.");
-		
-		new Item("Magic Lightbulb", "", syn("bulb", "magic lightbulb", "lightbulb")).inRoom(cavern);
+		Room cavern = new Room("Cavern", "This room has exits to the north and south. There is also a spiral staircase leading down.  There is an inscription on the wall.").makeDark();
+		new Item("inscription", "'Find the merchant to fulfill your destiny.'", syn("inscription")).detailInRoom(cavern);
+		new Item("Magic Lightbulb", "", syn("bulb", "magic lightbulb", "lightbulb")).inRoom(cavern).isLightsource(true);
 		doNavigate(cavern);
 	}
 	
@@ -33,16 +36,16 @@ public class Map {
 
 		/*Item brasskey = */new Item("The Brass Key",
 				"A key made of solid brass and encrusted with jewels. It shimmers in the torchlight of the dungeon, but only when you're in a room with torches.",
-				syn("key", "brass key", "the key", "the brass key")).inRoom(dark);
-		
+				syn("key", "brass key", "the key", "the brass key")).inRoom(dark).isLightsource(true);
+
 		dark.addexit("north", ncavern, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 		ncavern.addexit("east", fountain, Room.Special.AUTO_CREATE_REVERSE_ROOM);
 		fountain.details.add(new Item("fountain", "An ornate fountain. You feel invigorated just being in its presence. Also, you love it.", syn("fountain", "the fountain")));
-		
+
 		dark.triggers.add(new Trigger()
 				.addRequirement(Trigger.createCommandReq("hello"))
 				.addAction(Trigger.createMessageAction("eat dirt ok")));
-		
+
 		Item chest = new Item("Chest", "A wooden chest.", syn("chest")).isFixed(true).isOpenable(true).inRoom(dark);
 		Item coin = new Item("Coin", "A golden coin, that is made of gold.", syn("coin")).inContainer(chest);
 
@@ -52,14 +55,14 @@ public class Map {
 				.addRequirement(Trigger.createInInventoryReq(whistle))
 				.addAction(Trigger.createMessageAction("Toot toot!"))
 				);
-		
+
 		dark.triggers.add(new Trigger()
 				.addRequirement(Trigger.createCommandReq("north"))
 				.addRequirement(Trigger.createNotReq(Trigger.createInInventoryReq(coin)))
 				.addAction(Trigger.createMessageAction("You can't pay the toll."))
 				.failOnce()
 				);
-		
+
 		dark.triggers.add(new Trigger()
 				.addRequirement(Trigger.createCommandReq("north"))
 				.addRequirement(Trigger.createInInventoryReq(coin))
@@ -68,6 +71,8 @@ public class Map {
 				.addAction(Trigger.createMovePlayerAction(ncavern))
 				.succeedOnce()
 				);
+
+		dark.dark = true;
 		
 //		Example of lock/key implementation		
 //		Item burger = new Item("burger", "a magic portal", syn("burger"));

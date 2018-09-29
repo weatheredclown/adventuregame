@@ -19,21 +19,47 @@ public class TextAdventure {
 			if (userinput.isEmpty()) {
 				continue;
 			}
+			
             if (userinput.equals("help")) {
             	doHelp();
             	continue;
             }
+            
             if (doItemTriggered(userinput)) {
             	continue;
             }
+            
             if (Map.currentroom.processTriggers(userinput)) {
             	continue;
             }
+            
 			if (userinput.equals("look")) {
 				Map.currentroom.print();
 				continue;
 			}
 
+			if (userinput.equals("restart")) {
+				doDeath();
+				continue;
+			}
+
+			Room newRoom = Map.currentroom.ProcessDirection(userinput);
+			if (newRoom != null) {
+				Map.doNavigate(newRoom);
+				continue;
+			}
+			
+			if (userinput.equals("inventory")) {
+				doInventory();
+				continue;
+			}
+			
+			if (Map.currentroom.isDark()) {
+				// none of the commands after this point work in dark rooms.
+				System.out.println("It is so dark here.  So very dark.");
+				continue;
+			}
+			
 			if (userinput.startsWith("put ")) {
 				doPut(userinput);
 				continue;
@@ -54,31 +80,18 @@ public class TextAdventure {
 				doTake(takeItem);
 				continue;
 			}
-			
-			if (userinput.equals("restart")) {
-				doDeath();
-				continue;
-			}
-			
+
 			Item dropItem = DropItem(userinput);
 			if (dropItem != null) {
 				doDropItem(dropItem);
 				continue;
 			}
-			
-			Room newRoom = Map.currentroom.ProcessDirection(userinput);
-			if (newRoom != null) {
-				Map.doNavigate(newRoom);
-				continue;
-			}
-			if (userinput.equals("inventory")) {
-				doInventory();
-				continue;
-			}
+
 			if (isDirection(userinput)) {
 				System.out.println("You can't go " + userinput + "!");
 				continue;
 			}
+
 			if (userinput.startsWith("examine ")) {
 				boolean founditem = false;
 				founditem = doExamine(userinput, founditem);
@@ -88,7 +101,6 @@ public class TextAdventure {
 					System.out.println("You don't see that here.");
 					continue;
 				}
-				
 			}
 			System.out.println("The command '" + userinput +"' is not recognized.");
 		}

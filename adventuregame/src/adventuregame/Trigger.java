@@ -13,7 +13,7 @@ public class Trigger {
 		OR,
 		NOT
 	}
-	
+
 	enum TriggerActionType {
 		MESSAGE,
 		GIVE_ITEM,
