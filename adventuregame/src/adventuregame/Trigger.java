@@ -8,21 +8,21 @@ public class Trigger {
 		COMMAND,
 		TARGET_ITEM,
 		ITEM_IN_ROOM,
-		ITEM_IN_INVENTORY,
-		PLAYER_IN_ROOM,
+		ITEM_IN_INVENTORY, // chr has item
+		PLAYER_IN_ROOM, // chr in room
 		OR,
 		NOT,
-		LIGHT_IN_INVENTORY,
+		LIGHT_IN_INVENTORY, // chr has light 
 		ITEM_STATE,
 		ITEM_TIMER
 	}
 
 	enum TriggerActionType {
 		MESSAGE,
-		GIVE_ITEM,
-		TAKE_ITEM,
+		GIVE_ITEM, // to char
+		TAKE_ITEM, // from char
 		CREATE_EXIT,
-		MOVE_PLAYER,
+		MOVE_PLAYER, // char
 		DISABLE_TRIGGER,
 		ENABLE_TRIGGER,
 		CHANGE_ITEM_STATE,
